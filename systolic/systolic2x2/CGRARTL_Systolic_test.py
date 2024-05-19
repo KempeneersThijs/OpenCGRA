@@ -1,16 +1,5 @@
-"""
-==========================================================================
-CGRACL_fir_demo_test.py
-==========================================================================
-Test cases for CGRAs with CL data/config memory.
-
-Author : Cheng Tan
-  Date : Dec 28, 2019
-
-"""
-
 from pymtl3                       import *
-from pymtl3.stdlib.test           import TestSinkCL
+from pymtl3.stdlib.test.test_sinks import TestSinkRTL
 from pymtl3.stdlib.test.test_srcs import TestSrcRTL
 
 from ...lib.opt_type              import *
@@ -30,7 +19,6 @@ from ..CGRARTL                    import CGRARTL
 from ...fu.double.SeqMulAdderRTL  import SeqMulAdderRTL
 
 from ...lib.dfg_helper            import *
-
 import os
 
 #-------------------------------------------------------------------------
@@ -50,9 +38,7 @@ class TestHarness( Component ):
                      for i in range( s.num_tiles ) ]
     s.ctrl_waddr = [ TestSrcRTL( AddrType, ctrl_waddr[i] )
                      for i in range( s.num_tiles ) ]
-    s.sink_out   = [ TestSinkCL( DataType, psums[i] )
-                     for i in range( height-1 ) ]
-
+    s.sink_out   = [ TestSinkRTL(DataType, psums[i]) for i in range(height-1) ] #check correctness
     s.dut        = DUT( DataType, PredicateType, CtrlType, width, height,
                         ctrl_mem_size, data_mem_size, 100, FunctionUnit, FuList,
                         preload_data, preload_const )
@@ -63,14 +49,14 @@ class TestHarness( Component ):
       connect( s.ctrl_waddr[i].send,  s.dut.recv_waddr[i] )
     
     for i in range( height-1 ):
-      connect( s.dut.send_data[i],  s.sink_out[i].recv )
+      connect( s.dut.send_data[i],  s.sink_out[i].recv ) #connect tile 3 and 5 EAST port (see CGRARTL.py for connections) to the sink_out
   
   def line_trace( s ):
     return s.dut.line_trace()
 
 
 
-def run_sim( test_harness, max_cycles=12 ):
+def run_sim( test_harness, max_cycles=11 ):
   test_harness.elaborate()
   test_harness.apply( SimulationPass() )
   test_harness.sim_reset()
@@ -87,12 +73,6 @@ def run_sim( test_harness, max_cycles=12 ):
   test_harness.tick()
   test_harness.tick()
   test_harness.tick()
-
-  print( '=' * 70 )
-  print( "----------------- RTL test ------------------" )
-  print("=================================================================")
-  print("···························· split ······························")
-  print("=================================================================")
 
 def test_Systolic2x2():
   target_json = "systolic2x2.json"
