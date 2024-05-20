@@ -21,6 +21,7 @@ from ...fu.double.SeqMulAdderRTL  import SeqMulAdderRTL
 
 from ..systolic_workload_helper   import *
 from ...lib.dfg_helper            import *
+from contextlib import redirect_stdout
 import os
 
 #-------------------------------------------------------------------------
@@ -58,7 +59,7 @@ class TestHarness( Component ):
 
 
 
-def run_sim( test_harness, max_cycles=15 ):
+def run_sim( test_harness, max_cycles, linetrace ):
   safety_cycles = max_cycles + 2 #2 is a safety margin for start signal
   test_harness.elaborate()
   test_harness.apply( SimulationPass() )
@@ -66,12 +67,14 @@ def run_sim( test_harness, max_cycles=15 ):
 
   # Run simulation
   ncycles = 0
-  print()
-  print( "{}:{}".format( ncycles, test_harness.line_trace() ))
+  if linetrace:
+    print()
+    print( "{}:{}".format( ncycles, test_harness.line_trace() ))
   while ncycles < safety_cycles:
     test_harness.tick()
     ncycles += 1
-    print( "{}:{}".format( ncycles, test_harness.line_trace() ))
+    if linetrace:  
+      print( "{}:{}".format( ncycles, test_harness.line_trace() ))
   
   print( '=' * 120 )
   print("execution latency: ", max_cycles, "cycles\n")
@@ -138,36 +141,37 @@ def test_Systolic2x2():
       - The total amount of cycles is then equal to the remaining temporal loops multiplied by this II.
   """
   #define workload
-  I = np.array([
-      [1, 3, 2, 5], #4, 3, 2, 1],
-      [2, 4, 8, 9], #2, 5, 3, 4],
-      [2, 5, 3, 4], #2, 4, 8, 9],
-      [4, 3, 2, 1], #, 1, 3, 2, 5],
-      [4, 3, 2, 1], #, 1, 3, 2, 5],
-      [2, 5, 3, 4], #2, 4, 8, 9],
-      [2, 4, 8, 9], #2, 5, 3, 4],
-      [1, 3, 2, 5], #4, 3, 2, 1]
-      ])
-
-  W = np.array([
-      [2, 6, 7, 3, 9, 8, 6, 9],
-      [4, 8, 2, 1, 7, 6, 3, 5],
-      [7, 6, 3, 5, 4, 8, 2, 1],
-      [9, 8, 6, 9, 2, 6, 7, 3],
-#      [9, 8, 6, 9, 2, 6, 7, 3],
-#      [7, 6, 3, 5, 4, 8, 2, 1],
-#      [4, 8, 2, 1, 7, 6, 3, 5],
-#      [2, 6, 7, 3, 9, 8, 6, 9]
-      ])
+  rows = 12
+  cols = 12
+  inputs = [np.random.randint(0, 30, size=(rows, cols))] #for rows in range(4, 17, 12)
+  #          for cols in range(4, 17, 8)]
+  weights = [np.random.randint(0, 30, size=(rows, cols))] #for rows in range(4, 17, 12)
+  #          for cols in range(4, 17, 8)]
   
-  preload_const, preload_data, psums, cycles, data_mem_size = get_workload( DataType, I, W, width, II )
+  for I in inputs:
+    for W in weights:
+      if I.shape[1] != W.shape[0]:
+        continue
+      preload_const, preload_data, psums, cycles, data_mem_size = get_workload( DataType, I, W, width, II )
+      
+      
+      th = TestHarness( DUT, FunctionUnit, targetFuList, DataType, PredicateType,
+                        CtrlType, width, height, ctrl_mem_size, data_mem_size,
+                        src_opt, ctrl_waddr, preload_data, preload_const, psums )
 
-  th = TestHarness( DUT, FunctionUnit, targetFuList, DataType, PredicateType,
-                    CtrlType, width, height, ctrl_mem_size, data_mem_size,
-                    src_opt, ctrl_waddr, preload_data, preload_const, psums )
+      for i in range( num_tiles ):
+        th.set_param("top.dut.tile["+str(i)+"].construct", FuList=targetFuList)
 
-  for i in range( num_tiles ):
-    th.set_param("top.dut.tile["+str(i)+"].construct", FuList=targetFuList)
+      # Define the file path where you want to save the output
+      output_file_path = 'output{}{}.txt'.format(inputs.index(I), weights.index(W))
 
-  run_sim( th, max_cycles=cycles) 
+      #choose whether to output the linetrace
+      line_trace = False
+
+
+      # Redirect stdout to the file
+      with open(output_file_path, 'w') as f:
+          with redirect_stdout(f):
+            print("workload:\nInputs = ", I, "\n", "Weights = ", W, "\n\n", "starting execution..\n\n")
+            run_sim( th, cycles, line_trace)  
 
