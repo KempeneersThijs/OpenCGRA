@@ -65,6 +65,7 @@ class DataMemRTL( Component ):
             s.reg_file.wdata[wr_ports + i] = s.preloadData[s.recv_raddr[i].msg]
             s.reg_file.wen[wr_ports + i] = b1(1)
           else:
+
             s.reg_file.raddr[i] = s.recv_raddr[i].msg
             s.send_rdata[i].msg = s.reg_file.rdata[i]
 

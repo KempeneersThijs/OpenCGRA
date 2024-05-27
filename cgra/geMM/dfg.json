@@ -1,0 +1,124 @@
+[
+  {
+    "fu"         : "Phi",
+    "id"         : 0,
+    "opt"        : "OPT_PHI",
+    "opt_predicate" : 1,
+    "in_const"   : [0],
+    "in"         : [9,11],
+    "in_predicate" : [],
+    "out"       : [[2,5,9]],
+    "live_out_val"  : []
+  },
+  {
+    "fu"         : "Adder",
+    "id"         : 9,
+    "opt"        : "OPT_ADD",
+    "opt_predicate" : 0,
+    "in_const"   : [0],
+    "in"         : [0],
+    "in_predicate" : [],
+    "out"       : [[0,10]]
+  },
+  {
+    "fu"         : "Comp",
+    "id"         : 10,
+    "opt"        : "OPT_EQ",
+    "opt_predicate" : 0,
+    "in_const"   : [0],
+    "in"         : [9,11],
+    "in_predicate" : [],
+    "out"       : [[11]]
+  },
+  {
+    "fu"         : "Branch",
+    "id"         : 11,
+    "opt"        : "OPT_BRH",
+    "opt_predicate" : 0,
+    "in_const"   : [0,1],
+    "in"         : [10],
+    "in_predicate" : [],
+    "out"       : [[0,1,2,5,10], []],
+    "live_out_ctrl" : []
+  },
+  {
+    "fu"         : "MemUnit",
+    "id"         : 1,
+    "opt"        : "OPT_LD",
+    "opt_predicate" : 0,
+    "in_const"   : [0],
+    "in"         : [11],
+    "in_predicate" : [],
+    "out"       : [[4]]
+  },
+  {
+    "fu"         : "Adder",
+    "id"         : 2,
+    "opt"        : "OPT_ADD",
+    "opt_predicate" : 0,
+    "in_const"   : [],
+    "in"         : [0,11],
+    "in_predicate" : [],
+    "out"       : [[3]]
+  },
+  {
+    "fu"         : "Adder",
+    "id"         : 5,
+    "opt"        : "OPT_ADD",
+    "opt_predicate" : 0,
+    "in_const"   : [],
+    "in"         : [0,11],
+    "in_predicate" : [],
+    "out"       : [[6,8]]
+  },
+  {
+    "fu"         : "MemUnit",
+    "id"         : 3,
+    "opt"        : "OPT_LD",
+    "opt_predicate" : 0,
+    "in_const"   : [],
+    "in"         : [2],
+    "in_predicate" : [],
+    "out"       : [[4]]
+  },
+  {
+    "fu"         : "MemUnit",
+    "id"         : 6,
+    "opt"        : "OPT_LD",
+    "opt_predicate" : 0,
+    "in_const"   : [],
+    "in"         : [5],
+    "in_predicate" : [],
+    "out"       : [[7]]
+  },
+  {
+    "fu"         : "MemUnit",
+    "id"         : 8,
+    "opt"        : "OPT_STR",
+    "opt_predicate" : 0,
+    "in_const"   : [],
+    "in"         : [5],
+    "in_predicate" : [],
+    "out"       : [[]]
+  },
+  {
+    "fu"         : "Mul",
+    "id"         : 4,
+    "opt"        : "OPT_MUL",
+    "opt_predicate" : 0,
+    "in_const"   : [],
+    "in"         : [1,3],
+    "in_predicate" : [],
+    "out"       : [[7]]
+  },
+  {
+    "fu"         : "Adder",
+    "id"         : 7,
+    "opt"        : "OPT_ADD",
+    "opt_predicate" : 0,
+    "in_const"   : [],
+    "in"         : [6,4],
+    "in_predicate" : [],
+    "out"       : [[]]
+  }
+]

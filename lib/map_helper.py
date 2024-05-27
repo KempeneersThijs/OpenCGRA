@@ -65,7 +65,10 @@ opt_map  = { "OPT_START"       : OPT_START,
              "OPT_MUL_LRS"     : OPT_MUL_LRS,
              "OPT_MUL_ADD_LLS" : OPT_MUL_ADD_LLS,
              "OPT_MUL_SUB_LLS" : OPT_MUL_SUB_LLS,
-             "OPT_MUL_SUB_LRS" : OPT_MUL_SUB_LRS }
+             "OPT_MUL_SUB_LRS" : OPT_MUL_SUB_LRS,
+             "OPT_LD_CONST"    : OPT_LD_CONST,
+             "OPT_MUL_CONST_ADD": OPT_MUL_CONST_ADD,
+             "OPT_MUL_CONST"   : OPT_MUL_CONST  }
 
 
 def getUnitType( fu_name ):
