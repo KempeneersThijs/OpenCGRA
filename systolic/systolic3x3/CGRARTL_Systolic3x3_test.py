@@ -23,7 +23,6 @@ from ..systolic_workload_helper   import get_workload
 from ...lib.dfg_helper            import *
 from contextlib import redirect_stdout
 import os
-import time
 
 #-------------------------------------------------------------------------
 # Test harness
@@ -142,55 +141,48 @@ def test_Systolic3x3():
       - The total amount of cycles is then equal to the remaining temporal loops multiplied by this II.
   """
   #define workload
-
-  B = [3, 12, 36, 24, 3, 144]
-  C = [3, 12, 36, 12, 144, 144]
-  K = [3, 12, 36, 36, 6, 90]
-  inputs = [np.random.randint(0, 30, size=(row, col)) for row, col in list(zip(B, C))]
-  weights = [np.random.randint(0, 30, size=(row, col)) for row, col in list(zip(C, K))]
-  if os.path.exists("output_all.txt"):
-    os.remove("output_all.txt")
-  for i in range(len(inputs)):
-      b = B[i]
-      c = C[i]
-      k = K[i]
-      print(b, c, k)
-      if inputs[i].shape[1] != weights[i].shape[0]:
+  rows = [12, 12]
+  cols = [24, 12]
+  cols1 = [36, 24]
+  inputs = [np.random.randint(0, 30, size=(row, col)) for row in rows
+             for col in cols]
+  weights = [np.random.randint(0, 30, size=(col, col1)) for col in cols
+             for col1 in cols1]
+  
+  for I in inputs:
+    for W in weights:
+      B, C = I.shape
+      K = W.shape[1]
+      if C != W.shape[0]:
         continue
-      preload_const, preload_data, psums, cycles, data_mem_size = get_workload( DataType, inputs[i], weights[i], width, II )
+      preload_const, preload_data, psums, cycles, data_mem_size = get_workload( DataType, I, W, width, II )
       
       
       th = TestHarness( DUT, FunctionUnit, targetFuList, DataType, PredicateType,
                         CtrlType, width, height, ctrl_mem_size, data_mem_size,
                         src_opt, ctrl_waddr, preload_data, preload_const, psums )
 
-      for j in range( num_tiles ):
-        th.set_param("top.dut.tile["+str(j)+"].construct", FuList=targetFuList)
+      for i in range( num_tiles ):
+        th.set_param("top.dut.tile["+str(i)+"].construct", FuList=targetFuList)
 
       write_to_diff_file = False
       # Define the file path where you want to save the output
       if write_to_diff_file:
-        output_file_path = 'output{}.txt'.format(i)
+        output_file_path = 'output{}{}.txt'.format(inputs.index(I), weights.index(W))
       else:
         output_file_path = 'output_all.txt'
-
       #choose whether to output the linetrace
       line_trace = False
-      start_time = time.time()
 
       # Redirect stdout to the file
       if write_to_diff_file:
         with open(output_file_path, 'w') as f:
             with redirect_stdout(f):
-              print("\nworkload:\nB = ", b, "\nC = ", c, "\nK = ", k,"\n\n", "starting execution..\n\n")
+              print("\nworkload:\nB = ", B, "\nC = ", C, "\nK = ", K,"\n\n", "starting execution..\n\n")
               run_sim( th, cycles, line_trace)
-              end_time = time.time()
-              print("\nSimulation time: ", str(end_time - start_time))
       else:
         with open(output_file_path, 'a') as f:
             with redirect_stdout(f):
-              print("\nworkload:\nB = ", b, "\nC = ", c, "\nK = ", k,"\n\n", "starting execution..\n\n")
+              print("\nworkload:\nB = ", B, "\nC = ", C, "\nK = ", K,"\n\n", "starting execution..\n\n")
               run_sim( th, cycles, line_trace)  
-              end_time = time.time()
-              print("\nSimulation time: ", str(end_time - start_time))
 
